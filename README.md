@@ -8,9 +8,6 @@ Frontend je vyvinut pomocí **Flutteru** a backend běží v **Dockeru** s využ
 - Sledování zásob v reálném čase
 - Podpora více skladů
 - Historie pohybů zboží
-- Řízení přístupu uživatelů
-- Uživatelsky přívětivé rozhraní
-
 ---
 
 ## ⚙️ Požadavky na systém
