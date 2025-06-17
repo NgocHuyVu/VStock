@@ -82,6 +82,11 @@ Přidání této řádku:
 ```bash
 0 15 * * * cd /home/xrdpuser/Vstock_backend-main && /home/xrdpuser/Vstock_backend-main/venv/bin/python manage.py fetch_eur_czk >> /home/xrdpuser/Vstock_backend-main/fetch_eur_czk.log 2>&1
 ```
+
+### 4. Spuštění
+```bash
+python manage.py runserver
+```
 ### ⚠️ Důležité upozornění
 Pokud používáte aplikaci také na straně Flutteru, nezapomeňte změnit URL API v souboru VSTOCK/lib/services/apiservice.dart tak, aby odkazovala na správnou adresu vašeho backendu.
 
