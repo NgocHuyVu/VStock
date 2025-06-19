@@ -250,9 +250,11 @@ class _PohybyZasobScreenState extends State<PohybyZasobScreen> {
         if (typ == 3) {
           _showMovementForm();
         }
+
       } else {
         setState(() => _typPohybu = null);
       }
+      await _fetchPohybyZasob();
     }
   }
 
