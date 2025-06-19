@@ -105,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: SizedBox(
-        height: 70,
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
@@ -120,9 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
           unselectedLabelStyle: const TextStyle(
             fontSize: 10,
           ),
-          iconSize: 24,
-          selectedFontSize: 12,
-          unselectedFontSize: 10,
+          iconSize: 26,
+          selectedFontSize: 32,
+          unselectedFontSize: 30,
           items: [
             BottomNavigationBarItem(
               icon: Container(
