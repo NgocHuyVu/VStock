@@ -10,6 +10,29 @@ Frontend je vyvinut pomocí **Flutteru** a backend běží v **Dockeru** s využ
 - Historie pohybů zboží
 ---
 
+## 🔒 Bezpečnostní opatření
+
+Systém VStock implementuje **povinný API klíč** pro ochranu proti neoprávněnému přístupu, i když je IP adresa serveru známá. Bez platného klíče nelze data číst ani upravovat.
+
+Pro změnu bezpečnostního klíče postupujte takto:
+
+### 1. V backendu (Django)
+ `backend/vstock_backend/settings.py`:
+
+```python
+SECRET_API_KEY = "váš_nový_velmi_složitý_klíč_zde_123!@#$%^&*"
+```
+
+### 2. V mobilní aplikaci (Flutter):
+lib/services/api_service.dart
+
+```dart
+final Map<String, String> _headers = {
+  'Content-Type': 'application/json',
+  'X-API-Secret': 'váš_nový_velmi_složitý_klíč_zde_123!@#$%^&*',
+};
+```
+
 ## ⚙️ Požadavky na systém
 
 Před spuštěním aplikace je nutné nainstalovat:
@@ -47,14 +70,6 @@ cd VStock
 flutter pub get
 flutter run
 ```
-### 🧪 Testování a vývoj
-API testování: můžete využít Postman nebo rozhraní http://localhost:8000/api/
-
-Flutter hot reload: změny v kódu se okamžitě projeví pomocí flutter run + klávesa r
-
-Logování backendu: výstup je dostupný v terminálu, nebo v souboru cron.log (např. při načítání kurzů měn)
-
-
 
 ## ⚙️ Instalace na server s Ubuntu
 
