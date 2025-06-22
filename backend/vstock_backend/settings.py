@@ -1,8 +1,8 @@
 import os
-from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
+
 # === Debug a povolené hosty ===
 DEBUG = True
 ROOT_URLCONF = 'vstock_backend.urls'
@@ -11,6 +11,8 @@ ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-key")
+SECRET_API_HEADER = "X-API-Secret"
+SECRET_API_KEY = os.environ.get("API_SECRET_KEY", "vas_tajny_klic!@#123")
 
 DEFAULT_CHARSET = 'utf-8'
 
@@ -23,15 +25,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'rest_framework',  
-    'rest_framework_simplejwt',  
-    'api',  
+    'rest_framework',
+    'api',
 ]
 
 # === Middleware ===
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'api.middleware.APISecretMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,41 +77,12 @@ TEMPLATES = [
 
 # === Nastavení REST API ===
 
-if DEBUG: 
-    REST_FRAMEWORK = {
-        'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.AllowAny',  
-        ],
-    }
-else:
-    REST_FRAMEWORK = {
-        'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.IsAuthenticated',
-        ],
-        'DEFAULT_AUTHENTICATION_CLASSES': [
-            'rest_framework_simplejwt.authentication.JWTAuthentication',
-        ],
-    }
-
-
-# === Nastavení JWT ===
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),  
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  
-    'ROTATE_REFRESH_TOKENS': False,  
-    'BLACKLIST_AFTER_ROTATION': False, 
-    'ALGORITHM': 'HS256',  
-    'SIGNING_KEY': SECRET_KEY,  
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_HEADER_TYPES': ('Bearer',),  
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION', 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
 }
+
 
 # === Statické a mediální soubory ===
 STATIC_URL = '/static/'

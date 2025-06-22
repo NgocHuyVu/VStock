@@ -7,191 +7,149 @@ import '../models/pohyb_zasob.dart';
 import '../models/mena.dart';
 import '../models/sklad.dart';
 import '../models/kurz.dart';
+
 class ApiService {
   final String baseUrl = 'http://10.0.2.2:8000/api'; // Emulátor Android
+  final Map<String, String> _headers = {
+    'Content-Type': 'application/json',
+    'X-API-Secret': 'vas_tajny_klic!@#123',
+  };
 
-  Future<List<String>> getZemePuvodu() async {
-    final response = await http.get(Uri.parse('$baseUrl/zeme-puvodu'));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((item) => item['name'] as String).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst země původu');
-    }
-  }
+  // Helper method for GET requests
+  Future<dynamic> _getRequest(String endpoint) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: _headers,
+    );
 
-  Future<List<String>> getZnackyVyrobce() async {
-    final response = await http.get(Uri.parse('$baseUrl/znacky-vyrobce'));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((item) => item['name'] as String).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst značky vyrbce');
-    }
-  }
-
-  Future<List<String>> getKategorie() async {
-    final response = await http.get(Uri.parse('$baseUrl/kategorie'));
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((item) => item['name'] as String).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst kategorie');
-    }
-  }
-
-  Future<List<Produkt>> getProdukty() async {
-    final response = await http.get(Uri.parse('$baseUrl/produkty/'));
     if (response.statusCode == 200) {
       final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => Produkt.fromJson(e)).toList();
+      return json.decode(decodedBody);
     } else {
-      throw Exception('Nepodařilo se načíst produkty');
+      throw Exception('Nepodařilo se načíst data z $endpoint');
     }
   }
 
-  Future<void> createProdukt(Produkt produkt) async {
+  // Helper method for POST requests
+  Future<void> _postRequest(String endpoint, dynamic data) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/produkty/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(produkt.toJson()),
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: _headers,
+      body: json.encode(data),
     );
 
     if (response.statusCode != 201) {
-      throw Exception('Nepodařilo se přidat produkt');
+      throw Exception('Nepodařilo se vytvořit data na $endpoint');
     }
   }
 
-  Future<void> updateProdukt(Produkt produkt) async {
-    if (produkt.id == null) {
-      throw Exception('Produkt ID je null – nelze aktualizovat');
+  // Helper method for PUT requests
+  Future<void> _putRequest(String endpoint, dynamic data, {int? id}) async {
+    if (id == null && endpoint.endsWith('/')) {
+      throw Exception('Pro aktualizaci je vyžadován průkaz totožnosti');
     }
 
+    final url = id != null ? '$baseUrl/$endpoint$id/' : '$baseUrl/$endpoint';
     final response = await http.put(
-      Uri.parse('$baseUrl/produkty/${produkt.id}/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(produkt.toJson()),
+      Uri.parse(url),
+      headers: _headers,
+      body: json.encode(data),
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Nepodařilo se aktualizovat produkt');
+      throw Exception('Nepodařilo se aktualizovat data na $endpoint');
     }
   }
 
-  Future<void> deleteProdukt(int id) async {
+  // Helper method for DELETE requests
+  Future<void> _deleteRequest(String endpoint, int id) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/produkty/$id/'),
+      Uri.parse('$baseUrl/$endpoint$id/'),
+      headers: _headers,
     );
 
     if (response.statusCode != 204) {
-      throw Exception('Nepodařilo se smazat produkt');
+      throw Exception('Nepodařilo se aktualizovat data na $endpoint');
     }
+  }
+
+  Future<List<String>> getZemePuvodu() async {
+    final data = await _getRequest('zeme-puvodu');
+    return data.map<String>((item) => item['name'] as String).toList();
+  }
+
+  Future<List<String>> getZnackyVyrobce() async {
+    final data = await _getRequest('znacky-vyrobce');
+    return data.map<String>((item) => item['name'] as String).toList();
+  }
+
+  Future<List<String>> getKategorie() async {
+    final data = await _getRequest('kategorie');
+    return data.map<String>((item) => item['name'] as String).toList();
+  }
+
+  Future<List<Produkt>> getProdukty() async {
+    final data = await _getRequest('produkty/');
+    return data.map<Produkt>((e) => Produkt.fromJson(e)).toList();
+  }
+
+  Future<void> createProdukt(Produkt produkt) async {
+    await _postRequest('produkty/', produkt.toJson());
+  }
+
+  Future<void> updateProdukt(Produkt produkt) async {
+    await _putRequest('produkty/', produkt.toJson(), id: produkt.id);
+  }
+
+  Future<void> deleteProdukt(int id) async {
+    await _deleteRequest('produkty/', id);
   }
 
   Future<List<Zasoba>> getZasoby() async {
-    final response = await http.get(Uri.parse('$baseUrl/zasoby/'));
-    if (response.statusCode == 200) {
-      final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => Zasoba.fromJson(e)).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst zásoby');
-    }
+    final data = await _getRequest('zasoby/');
+    return data.map<Zasoba>((e) => Zasoba.fromJson(e)).toList();
   }
 
   Future<List<PohybZasob>> getPohybyZasob() async {
-    final response = await http.get(Uri.parse('$baseUrl/pohyby-zasob/'));
-    if (response.statusCode == 200) {
-      final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => PohybZasob.fromJson(e)).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst pohyby zásob');
-    }
+    final data = await _getRequest('pohyby-zasob/');
+    return data.map<PohybZasob>((e) => PohybZasob.fromJson(e)).toList();
   }
 
   Future<void> createPohybZasob(PohybZasob pohyb) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/pohyby-zasob/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(pohyb.toJson()),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception('Nepodařilo se přidat pohyb zásob');
-    }
-    if (response.statusCode == 400) {
-      print('Validation errors: ${response.body}');
+    try {
+      await _postRequest('pohyby-zasob/', pohyb.toJson());
+    } catch (e) {
+      if (e.toString().contains('400')) {
+        print('Chyby ověření: ${e.toString()}');
+      }
+      rethrow;
     }
   }
 
   Future<List<Mena>> getMeny() async {
-    final response = await http.get(Uri.parse('$baseUrl/meny'));
-    if (response.statusCode == 200) {
-      final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => Mena.fromJson(e)).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst měny');
-    }
+    final data = await _getRequest('meny');
+    return data.map<Mena>((e) => Mena.fromJson(e)).toList();
   }
 
   Future<List<Sklad>> getSklady() async {
-    final response = await http.get(Uri.parse('$baseUrl/sklady'));
-    if (response.statusCode == 200) {
-      final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => Sklad.fromJson(e)).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst sklady');
-    }
+    final data = await _getRequest('sklady');
+    return data.map<Sklad>((e) => Sklad.fromJson(e)).toList();
   }
-  Future<void> createSklad(Sklad sklad) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/sklady/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(sklad.toJson()),
-    );
 
-    if (response.statusCode != 201) {
-      throw Exception('Nepodařilo se přidat sklad');
-    }
+  Future<void> createSklad(Sklad sklad) async {
+    await _postRequest('sklady/', sklad.toJson());
   }
 
   Future<void> updateSklad(Sklad sklad) async {
-    if (sklad.id == null) {
-      throw Exception('Sklad ID je null – nelze aktualizovat');
-    }
-
-    final response = await http.put(
-      Uri.parse('$baseUrl/sklady/${sklad.id}/'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode(sklad.toJson()),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Nepodařilo se aktualizovat sklad');
-    }
+    await _putRequest('sklady/', sklad.toJson(), id: sklad.id);
   }
+
   Future<void> deleteSklady(int id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/sklady/$id/'),
-    );
-
-    if (response.statusCode != 204) {
-      throw Exception('Nepodařilo se smazat produkt');
-    }
+    await _deleteRequest('sklady/', id);
   }
-  Future<List<Kurz>> getKurzyMeny() async {
-    final response = await http.get(Uri.parse('$baseUrl/kurzy-meny/'));
 
-    if (response.statusCode == 200) {
-      final decodedBody = utf8.decode(response.bodyBytes);
-      final List data = json.decode(decodedBody);
-      return data.map((e) => Kurz.fromJson(e)).toList();
-    } else {
-      throw Exception('Nepodařilo se načíst kurzy měn');
-    }
+  Future<List<Kurz>> getKurzyMeny() async {
+    final data = await _getRequest('kurzy-meny/');
+    return data.map<Kurz>((e) => Kurz.fromJson(e)).toList();
   }
 }

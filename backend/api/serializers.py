@@ -129,27 +129,27 @@ class PohybyZasobSerializer(serializers.ModelSerializer):
         # Handle produkt - make sure it exists and is required
         if 'produkt' not in data:
             raise serializers.ValidationError({
-                'produkt': "This field is required."
+                'produkt': "Toto pole je povinné."
             })
         try:
             produkt = Produkty.objects.get(kod_produktu=data['produkt'])
             internal_data['produkt_id'] = produkt.id
         except Produkty.DoesNotExist:
             raise serializers.ValidationError({
-                'produkt': f"Product with code '{data['produkt']}' does not exist"
+                'produkt': f"Produkt s kódem '{data['produkt']}' neexistuje"
             })
 
         # Handle mena - make sure it exists and is required
         if 'mena' not in data:
             raise serializers.ValidationError({
-                'mena': "This field is required."
+                'mena': "Toto pole je povinné."
             })
         try:
             mena = Meny.objects.get(iso_kod_meny=data['mena'])
             internal_data['mena_id'] = mena.id
         except Meny.DoesNotExist:
             raise serializers.ValidationError({
-                'mena': f"Currency with code '{data['mena']}' does not exist"
+                'mena': f"Měna s kódem  '{data['mena']}' neexistuje"
             })
 
         # Handle odchozi_sklad
@@ -159,7 +159,7 @@ class PohybyZasobSerializer(serializers.ModelSerializer):
                 internal_data['odchozi_sklad_id'] = sklad.id
             except Sklady.DoesNotExist:
                 raise serializers.ValidationError({
-                    'odchozi_sklad': f"Warehouse '{data['odchozi_sklad']}' does not exist"
+                    'odchozi_sklad': f"Sklad '{data['odchozi_sklad']}' neexistuje"
                 })
 
         # Handle cilovy_sklad
@@ -169,7 +169,7 @@ class PohybyZasobSerializer(serializers.ModelSerializer):
                 internal_data['cilovy_sklad_id'] = sklad.id
             except Sklady.DoesNotExist:
                 raise serializers.ValidationError({
-                    'cilovy_sklad': f"Warehouse '{data['cilovy_sklad']}' does not exist"
+                    'cilovy_sklad': f"Sklad '{data['cilovy_sklad']}' neexistuje"
                 })
 
         return internal_data
@@ -182,35 +182,35 @@ class PohybyZasobSerializer(serializers.ModelSerializer):
         if typ_pohybu == 1:  # Příjem (Incoming)
             if odchozi_sklad_id is not None:
                 raise serializers.ValidationError(
-                    {"odchozi_sklad": "Odchozi sklad must be null for Příjem (Incoming)"}
+                    {"odchozi_sklad": "Odchozí sklad musí být prázdný pro typ Příjem"}
                 )
             if cilovy_sklad_id is None:
                 raise serializers.ValidationError(
-                    {"cilovy_sklad": "Cilovy sklad is required for Příjem (Incoming)"}
+                    {"cilovy_sklad": "Cilový sklad je povinný pro typ Příjem"}
                 )
 
         elif typ_pohybu == 2:  # Výdej (Outgoing)
             if odchozi_sklad_id is None:
                 raise serializers.ValidationError(
-                    {"odchozi_sklad": "Odchozi sklad is required for Výdej (Outgoing)"}
+                    {"odchozi_sklad": "Odchozí sklad je povinný pro typ Výdej"}
                 )
             if cilovy_sklad_id is not None:
                 raise serializers.ValidationError(
-                    {"cilovy_sklad": "Cilovy sklad must be null for Výdej (Outgoing)"}
+                    {"cilovy_sklad": "Cilový sklad musí být prázdný pro typ Výdej"}
                 )
 
         elif typ_pohybu == 3:  # Přesun (Transfer)
             if odchozi_sklad_id is None:
                 raise serializers.ValidationError(
-                    {"odchozi_sklad": "Odchozi sklad is required for Přesun (Transfer)"}
+                    {"odchozi_sklad": "Odchozí sklad je povinný pro typ Přesun"}
                 )
             if cilovy_sklad_id is None:
                 raise serializers.ValidationError(
-                    {"cilovy_sklad": "Cilovy sklad is required for Přesun (Transfer)"}
+                    {"cilovy_sklad": "Cilový sklad je povinný pro typ Přesun"}
                 )
             if odchozi_sklad_id == cilovy_sklad_id:
                 raise serializers.ValidationError(
-                    {"cilovy_sklad": "Cilovy sklad must be different from Odchozi sklad"}
+                    {"cilovy_sklad": "Cilový sklad musí být jiný než Odchozí sklad"}
                 )
 
         return data
