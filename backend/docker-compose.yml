@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    environment:
+      POSTGRES_DB: firma
+      POSTGRES_USER: vstockuser
+      POSTGRES_PASSWORD: vstockpass
+
+  cron:
+    build:
+      context: .
+    volumes:
+      - .:/code
+    environment:
+      - TZ=Europe/Prague
+    depends_on:
+      - web
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      echo '0 15 * * * cd /code && python manage.py fetch_eur_czk >> /code/cron.log 2>&1' > /etc/crontabs/root &&
+      crond -f
+
+volumes:
+  postgres_data:
